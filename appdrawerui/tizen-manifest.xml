@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.4" package="org.yohoho.appdrawer" version="1.0.0">
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.1" package="org.yohoho.appdrawer" version="1.0.1">
     <profile name="mobile"/>
-    <ui-application appid="org.yohoho.appdrawer.ui" exec="appdrawer" hw-acceleration="on" launch_mode="single" multiple="false" nodisplay="false" taskmanage="true" type="capp">
+    <ui-application appid="org.yohoho.appdrawer.ui" exec="appdrawer" hw-acceleration="on" multiple="false" nodisplay="false" taskmanage="true" type="capp">
         <label>App Drawer</label>
         <icon>appdrawerui.png</icon>
     </ui-application>

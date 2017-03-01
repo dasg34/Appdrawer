@@ -1,7 +1,8 @@
 #define FONT_SIZE 50
+
 collections {
    base_scale: 2.6;
-   group { "main";
+   group { name: "main";
       parts {
          part { name: "tutorial";
             type: SWALLOW;
