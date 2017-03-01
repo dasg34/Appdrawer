@@ -1,0 +1,96 @@
+collections {
+   base_scale: 2.6;
+   group { name: "main";
+      styles {
+         style { name: "default";
+         base: "font=Tizen:style=Regular align=middle font_size="30" color=#000000 wrap=mixed ellipsis=1.0 text_class=tizen";
+            tag: "br" "\n";
+            tag: "tab" "\t";
+         }
+      }
+      parts {
+         part { name: "padding_top";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel2.relative: 1 0;
+               align: 0 0.5;
+               min: 0 32;
+            }
+         }
+         part { name: "padding_left";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel2.relative: 0 1;
+               align: 0 0.5;
+               min: 32 0;
+            }
+         }
+         part { name: "padding_right";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel1.relative: 1 0;
+               align: 1 0.5;
+               min: 32 0;
+            }
+         }
+         part { name: "icon";
+            scale: 1;
+            type: SWALLOW;
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 1 1;
+                  to_x: "padding_left";
+                  to_y: "padding_top";
+               }
+               rel2 {
+                  relative: 0 1;
+                  to_x: "padding_right";
+                  to_y: "padding_top";
+               }
+               align: 0.5 0;
+               min: 110 110;
+            }
+         }
+         part { name: "padding_middle";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 0 1;
+                  to: "icon";
+               }
+               rel2 {
+                  to: "icon";
+               }
+               align: 0.5 0;
+               min: 0 32;
+            }
+         }
+         part { name: "text";
+            type: TEXTBLOCK;
+            scale: 1;
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 0.5 1;
+                  to: "icon";
+               }
+               rel2 {
+                  relative: 0.5 1;
+                  to: "icon";
+               }
+               align: 0.5 0;
+               text {
+                  style: "default";
+                  text: "testtesttesttest ";
+                  min: 0 1;
+               }
+               align: 0.5 0;
+               min: 150 90;
+            }
+         }
+      }
+   }
+}

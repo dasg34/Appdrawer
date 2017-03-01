@@ -1,0 +1,286 @@
+collections {
+   base_scale: 2.6;
+   group { name: "main";
+      styles {
+         style { name: "default";
+         base: "font=Tizen:style=Regular align=middle font_size="30" color=#FFFFFF wrap=mixed ellipsis=1.0 text_class=tizen";
+            tag: "br" "\n";
+            tag: "tab" "\t";
+         }
+      }
+      images {
+         image: "icon_delete.png" COMP;
+      }
+      parts {
+         part { name: "padding_top";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel2.relative: 1 0;
+               align: 0 0.5;
+               min: 0 32;
+            }
+         }
+         part { name: "padding_left";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel2.relative: 0 1;
+               align: 0 0.5;
+               min: 32 0;
+            }
+         }
+         part { name: "padding_right";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel1.relative: 1 0;
+               align: 1 0.5;
+               min: 32 0;
+            }
+         }
+         part { name: "icon";
+            scale: 1;
+            type: SWALLOW;
+            clip_to: "icon_clipper";
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 1 1;
+                  to_x: "padding_left";
+                  to_y: "padding_top";
+               }
+               rel2 {
+                  relative: 0 1;
+                  to_x: "padding_right";
+                  to_y: "padding_top";
+               }
+               align: 0.5 0;
+               min: 110 110;
+            }
+         }
+         part { name: "icon_clipper";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               rel1.to: "icon";
+               rel2.to: "icon";
+            }
+            description { state: "pressed" 0.0;
+               inherit: "default" 0.0;
+               color: 255 255 255 128;
+            }
+         }
+         part { name: "icon_event";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               rel1.to: "icon";
+               rel2.relative: 0.0 1.0;
+               rel2.to: "padding_right";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "padding_middle";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 0 1;
+                  to: "icon";
+               }
+               rel2 {
+                  to: "icon";
+               }
+               align: 0.5 0;
+               min: 0 32;
+            }
+         }
+         part { name: "delete_icon";
+            scale: 1;
+            clip_to: "delete_icon_clipper";
+            description { state: "default" 0.0;
+               image.normal: "icon_delete.png";
+               rel1 {
+                  to: "icon";
+               }
+               rel2 {
+                  relative: 0 0;
+                  to: "icon";
+               }
+               min: 57 57;
+               align: 0.2 0.2;
+               visible: 0;
+            }
+            description { state: "show" 0.0;
+               inherit: "default" 0.0;
+               visible: 1;
+            }
+         }
+         part { name: "delete_icon_clipper";
+            scale: 1;
+            type: RECT;
+            description { state: "default" 0.0;
+               rel1 {
+                  to: "delete_icon";
+               }
+               rel2 {
+                  to: "delete_icon";
+               }
+            }
+            description { state: "pressed" 0.0;
+               inherit: "default" 0.0;
+               color: 128 128 128 255;
+            }
+         }
+         part { name: "text";
+            type: TEXTBLOCK;
+            scale: 1;
+            repeat_events: 1;
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 0.5 1;
+                  to: "icon";
+               }
+               rel2 {
+                  relative: 0.5 1;
+                  to: "icon";
+               }
+               align: 0.5 0;
+               text {
+                  style: "default";
+                  text: "testtesttesttest ";
+                  min: 0 1;
+               }
+               align: 0.5 0;
+               min: 150 90;
+            }
+         }
+      }
+      programs {
+         program { name: "icon_pressed";
+            signal: "mouse,down,*";
+            source: "icon_event";
+            action: STATE_SET "pressed" 0.0;
+            target: "icon_clipper";
+         }
+         program { name: "icon_unpressed";
+            signal: "mouse,up,*";
+            source: "icon_event";
+            action: STATE_SET "default" 0.0;
+            target: "icon_clipper";
+         }
+         program { name: "icon_clicked";
+            signal: "mouse,clicked,*";
+            source: "icon_event";
+            action: SIGNAL_EMIT "icon,clicked" "";
+            script {
+               new st[31], Float:vl;
+               get_state(PART:"delete_icon", st, 30, vl);
+               if (st[0] != 's') {
+                  emit("icon,clicked", "");
+               }
+            }
+         }
+         program { name: "delete_pressed";
+            signal: "mouse,down,*";
+            source: "delete_icon";
+            action: STATE_SET "pressed" 0.0;
+            target: "delete_icon_clipper";
+         }
+         program { name: "delete_unpressed";
+            signal: "mouse,up,*";
+            source: "delete_icon";
+            action: STATE_SET "default" 0.0;
+            target: "delete_icon_clipper";
+         }
+         program { name: "delete_clicked";
+            signal: "mouse,clicked,*";
+            source: "delete_icon";
+            action: SIGNAL_EMIT "delete,clicked" "";
+         }
+         program { name: "delete_show";
+            signal: "delete,show";
+            source: "";
+            action: STATE_SET "show" 0.0;
+            target: "delete_icon";
+         }
+         program { name: "delete_hide";
+            signal: "delete,hide";
+            source: "";
+            action: STATE_SET "hide" 0.0;
+            target: "delete_icon";
+         }
+      }
+   }
+   group { name: "plus";
+      inherit: "main";
+      images {
+         image: "icon_plus.png" COMP;
+      }
+      parts {
+         part { name: "icon";
+            type: IMAGE;
+            description { state: "default" 0.0;
+               image.normal: "icon_plus.png";
+               rel1 {
+                  relative: 1 1;
+                  to_x: "padding_left";
+                  to_y: "padding_top";
+               }
+               rel2 {
+                  relative: 0 1;
+                  to_x: "padding_right";
+                  to_y: "padding_top";
+               }
+               align: 0.5 0;
+               min: 110 110;
+            }
+            description { state: "hide" 0.0;
+               inherit: "default" 0.0;
+               visible: 0;
+            }
+         }
+         part { name: "text";
+            type: TEXTBLOCK;
+            description { state: "default" 0.0;
+               visible: 0;
+            }
+         }
+      }
+      programs {
+         program { name: "icon_clicked";
+            signal: "mouse,clicked,*";
+            source: "icon_event";
+            action: SIGNAL_EMIT "plus,clicked" "";
+         }
+         program {
+            signal: "plus,hide";
+            source: "";
+            action: STATE_SET "hide" 0.0;
+            target: "icon";
+         }
+         program {
+            signal: "plus,show";
+            source: "";
+            action: STATE_SET "default" 0.0;
+            target: "icon";
+         }
+      }
+   }
+   group { name: "empty";
+      inherit: "main";
+      parts {
+         part { name: "icon";
+            description { state: "default" 0.0;
+               visible: 0;
+            }
+         }
+         part { name: "text";
+            type: TEXTBLOCK;
+            description { state: "default" 0.0;
+               visible: 0;
+            }
+         }
+      }
+   }
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.4" package="org.yohoho.appdrawer" version="1.0.0">
+    <profile name="mobile"/>
+    <widget-application appid="org.yohoho.appdrawer" exec="appdrawerwidget" main="true" update-period="0">
+        <label>App Drawer</label>
+        <icon>icon.png</icon>
+        <support-size preview="preview4x4.png">4x4</support-size>
+        <support-size preview="preview4x2.png">4x2</support-size>
+    </widget-application>
+    <privileges>
+        <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
+    </privileges>
+</manifest>

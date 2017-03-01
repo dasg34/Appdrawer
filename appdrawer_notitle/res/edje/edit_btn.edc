@@ -1,0 +1,86 @@
+collections {
+   base_scale: 2.6;
+   images {
+      image: "edit_bg.png" COMP;
+   }
+   group { name: "main";
+      parts {
+         part { name: "bg_main";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               min: 130 48;
+            }
+         }
+         part { name: "right_padding";
+            scale: 1;
+            type: SPACER;
+            description { state: "default" 0.0;
+               rel1 {
+                  relative: 1.0 0;
+               }
+               min: 30 48;
+               align: 1.0 0.0;
+            }
+         }
+         part { name: "bg";
+            scale: 1;
+            description { state: "default" 0.0;
+               image {
+                  normal: "edit_bg.png";
+               }
+               rel1 {
+                  to: "bg_main";
+               }
+               rel2 {
+                  relative: 0.0 0.0;
+                  to_x: "right_padding";
+                  to_y: "bg_main";
+               }
+               align: 0.5 0;
+               color: 255 255 255 100;
+               min: 120 48;
+            }
+         }
+         part { name: "text";
+            type: TEXT;
+            scale: 1;
+            repeat_events: 1;
+            description { state: "default" 0.0;
+               rel1 {
+                  to: "bg";
+               }
+               rel2 {
+                  to: "bg";
+               }
+               text {
+                  text: "EDIT";
+                  size: 30;
+               }
+            }
+            description { state: "done" 0.0;
+               inherit: "default" 0.0;
+               text.text: "DONE";
+            }
+         }
+      }
+      programs {
+         program { name: "edit_btn_click";
+            signal: "mouse,clicked,*";
+            source: "bg";
+            script {
+               new st[31], Float:vl;
+               get_state(PART:"text", st, 30, vl);
+               if (st[1] == 'e') {
+                  emit("edit,edit", "");
+                  set_state(PART:"text", "done", 0.0);
+               }
+               else {
+                  emit("edit,done", "");
+                  set_state(PART:"text", "default", 0.0);
+               }
+            }
+         }
+      }
+   }
+}
