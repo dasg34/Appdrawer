@@ -5,6 +5,7 @@
 #include <widget_app_efl.h>
 #include <Elementary.h>
 #include <dlog.h>
+#include <APPDRAWER.h>
 
 #ifdef  LOG_TAG
 #undef  LOG_TAG
@@ -15,9 +16,9 @@
 #define PACKAGE "org.yohoho.appdrawer"
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 
-#if DEBUG == 1
+#if DEBUG == 0
 #define dlog_print(...) ;
 #endif
 

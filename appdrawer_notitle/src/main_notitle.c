@@ -1,273 +1,20 @@
 #include <private_notitle.h>
 #include <tizen.h>
 
-typedef struct widget_instance_data {
-	Evas_Object *win;
-	Evas_Object *grid;
-	Evas_Object *box;
-	Evas_Object *plus_icon;
-	Evas_Object *edit_btn;
-	Eina_List *app_list;
-	Eina_Bool keep_icon_select;
-	int _w, _h;
-} widget_instance_data_s;
-
-static char *
-app_res_path_get(const char *res_name)
-{
-   char *res_path, *path;
-   int pathlen;
-
-   res_path = app_get_resource_path();
-   if (!res_path)
-      {
-         dlog_print(DLOG_ERROR, LOG_TAG, "res_path_get ERROR!");
-         return NULL;
-      }
-
-   pathlen = strlen(res_name) + strlen(res_path) + 1;
-   path = malloc(sizeof(char) * pathlen);
-   snprintf(path, pathlen, "%s%s", res_path, res_name);
-   free(res_path);
-
-   return path;
-}
-
-static Evas_Object *
-my_layout_add(Evas_Object *parent, const char *edj_name, const char *group)
-{
-   Evas_Object *layout;
-   char *path;
-
-   path = app_res_path_get(edj_name);
-
-   layout = elm_layout_add(parent);
-   elm_layout_file_set(layout, path, group);
-   free(path);
-
-   return layout;
-}
-
-static void
-_popup_timeout_cb(void *data, Evas_Object *obj, void *event_info)
-{
-   evas_object_del(obj);
-}
-
-
-static void
-_popup_toast_open(Evas_Object *win)
-{
-   Evas_Object *popup = elm_popup_add(win);
-   elm_object_style_set(popup, "toast");
-   elm_popup_timeout_set(popup, 2.0);
-   elm_object_text_set(popup, "Icon already exists");
-   evas_object_size_hint_weight_set(popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_smart_callback_add(popup, "timeout", _popup_timeout_cb, NULL);
-   evas_object_show(popup);
-}
-
-static void
-_app_grid_rearrange(widget_instance_data_s *wid)
-{
-   Evas_Object *temp_data;
-   Eina_List *l;
-   int list_count;
-
-   EINA_LIST_FOREACH(wid->app_list, l, temp_data)
-      elm_grid_unpack(wid->grid, temp_data);
-
-   list_count = eina_list_count(wid->app_list);
-   for (int i = 0; i < list_count; i++)
-      {
-         temp_data = eina_list_nth(wid->app_list, i);
-         elm_grid_pack(wid->grid, temp_data, i % 4, i / 4, 1, 1);
-
-         elm_grid_pack(wid->grid, wid->plus_icon, list_count % 4, list_count / 4, 1, 1);
-         evas_object_show(wid->plus_icon);
-      }
-
-   if (list_count == 0)
-      {
-         elm_grid_pack(wid->grid, wid->plus_icon, 0, 0, 1, 1);
-         evas_object_show(wid->plus_icon);
-      }
-}
-
-static void
-_delete_clicked_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
-{
-   widget_instance_data_s *wid = data;
-
-   elm_grid_unpack(wid->grid, obj);
-   evas_object_del(obj);
-   elm_grid_unpack(wid->grid, wid->plus_icon);
-
-   wid->app_list = eina_list_remove(wid->app_list, obj);
-   char *label = evas_object_data_get(obj, "text");
-   free(label);
-   _app_grid_rearrange(wid);
-}
-
-
-static void
-_icon_clicked_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
-{
-   char *id = data;
-
-   app_control_h app_control;
-   app_control_create(&app_control);
-   app_control_set_app_id(app_control, id);
-   app_control_send_launch_request(app_control, NULL, NULL);
-   app_control_destroy(app_control);
-}
-
-static void
-_app_control_reply_cb(app_control_h request, app_control_h reply, app_control_result_e result, void *data)
-{
-   widget_instance_data_s *wid = data;
-   Evas_Object *obj;
-   Eina_List *l;
-   char *path, *label, *id;
-   int count;
-
-   wid->keep_icon_select = EINA_FALSE;
-   app_control_get_extra_data(reply, "app_icon", &path);
-   app_control_get_extra_data(reply, "app_label", &label);
-   app_control_get_extra_data(reply, "app_id", &id);
-
-   EINA_LIST_FOREACH(wid->app_list, l, obj)
-      {
-         const char *list_label;
-         list_label = evas_object_data_get(obj, "text");
-         dlog_print(DLOG_ERROR, LOG_TAG, "list_label = %s", list_label);
-         if (!strcmp(label, list_label))
-            {
-               free(path);
-               free(label);
-               _popup_toast_open(wid->win);
-               return;
-            }
-      }
-
-   Evas_Object *app_obj = my_layout_add(wid->grid, "edje/app_icon_notitle.edj", "main");
-   evas_object_size_hint_weight_set(app_obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(app_obj, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_layout_signal_callback_add(app_obj, "delete,clicked", "", _delete_clicked_cb, wid);
-   elm_layout_signal_callback_add(app_obj, "icon,clicked", "", _icon_clicked_cb, id);
-   elm_layout_signal_emit(app_obj, "delete,show", "");
-   evas_object_data_set(app_obj, "text", label);
-   evas_object_show(app_obj);
-
-   Evas_Object *img = elm_image_add(app_obj);
-   evas_object_size_hint_weight_set(img, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-   evas_object_size_hint_align_set(img, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   elm_image_file_set(img, path, NULL);
-   elm_object_part_content_set(app_obj, "icon", img);
-
-   wid->app_list = eina_list_append(wid->app_list, app_obj);
-
-   count = eina_list_count(wid->app_list);
-   elm_grid_pack(wid->grid, app_obj, (count - 1) % 4, (count - 1) / 4, 1, 1);
-
-   elm_grid_unpack(wid->grid, wid->plus_icon);
-   evas_object_hide(wid->plus_icon);
-   if (abs(wid->_w - wid->_h) < 10)
-      {
-         if (count < 16)
-            {
-               elm_grid_pack(wid->grid, wid->plus_icon, count % 4, count / 4, 1, 1);
-               evas_object_show(wid->plus_icon);
-            }
-      }
-   else
-      {
-         if (count < 8)
-            {
-               elm_grid_pack(wid->grid, wid->plus_icon, count % 4, count / 4, 1, 1);
-               evas_object_show(wid->plus_icon);
-            }
-      }
-
-   free(path);
-}
-
-static void
-_plus_clicked_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
-{
-   widget_instance_data_s *wid = data;
-   app_control_h app_control;
-
-   wid->keep_icon_select = EINA_TRUE;
-
-   app_control_create(&app_control);
-   app_control_set_app_id(app_control, "org.yohoho.appdrawer.ui");
-   app_control_set_operation(app_control, "SELECT_APP");
-   app_control_send_launch_request(app_control, _app_control_reply_cb, wid);
-   app_control_destroy(app_control);
-}
-
-static void
-_done_clicked_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
-{
-   widget_instance_data_s *wid = data;
-   Eina_List *l;
-   Evas_Object *app_obj;
-
-   elm_layout_signal_emit(wid->plus_icon, "plus,hide", "");
-
-   if (!wid->app_list)
-      return;
-
-   EINA_LIST_FOREACH(wid->app_list, l, app_obj)
-      elm_layout_signal_emit(app_obj, "delete,hide", "");
-}
-
-static void
-_edit_clicked_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
-{
-   widget_instance_data_s *wid = data;
-   Eina_List *l;
-   Evas_Object *app_obj;
-   int list_count;
-
-   elm_layout_signal_emit(wid->plus_icon, "plus,show", "");
-
-   if (!wid->app_list)
-      {
-         elm_grid_pack(wid->grid, wid->plus_icon, 0, 0, 1, 1);
-         return;
-      }
-
-   EINA_LIST_FOREACH(wid->app_list, l, app_obj)
-      elm_layout_signal_emit(app_obj, "delete,show", "");
-
-   list_count = eina_list_count(wid->app_list);
-
-   if (abs(wid->_w - wid->_h) < 10)
-      {
-         if (list_count >= 16)
-           return;
-      }
-   else
-      {
-         if (list_count >= 8)
-            return;
-      }
-
-   elm_grid_pack(wid->grid, wid->plus_icon, list_count % 4, list_count / 4, 1, 1);
-}
-
 static int
 widget_instance_create(widget_context_h context, bundle *content, int w, int h, void *user_data)
 {
 	widget_instance_data_s *wid = (widget_instance_data_s*) calloc(1, sizeof(widget_instance_data_s));
 	int ret;
 
-	if (content != NULL) {
-		/* Recover the previous status with the bundle object. */
+	if (content != NULL)
+      wid->bundle = bundle_dup(content);
+	else
+	   wid->bundle = bundle_create();
 
-	}
+	wid->context = context;
+
+	wid->no_label = EINA_TRUE;
 
 	/* Window */
 	ret = widget_app_get_elm_win(context, &wid->win);
@@ -280,8 +27,6 @@ widget_instance_create(widget_context_h context, bundle *content, int w, int h, 
 	wid->_h = h;
 	evas_object_resize(wid->win, w, h);
 
-	dlog_print(DLOG_ERROR, LOG_TAG, "w = %d h : %d", w, h);
-
 	Evas_Object *v_box = elm_box_add(wid->win);
    evas_object_size_hint_weight_set(v_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    elm_win_resize_object_add(wid->win, v_box);
@@ -291,7 +36,6 @@ widget_instance_create(widget_context_h context, bundle *content, int w, int h, 
    wid->edit_btn = edit_btn;
    evas_object_size_hint_weight_set(edit_btn, EVAS_HINT_EXPAND, 0);
    evas_object_size_hint_align_set(edit_btn, 1.0, EVAS_HINT_FILL);
-   elm_layout_signal_emit(edit_btn, "mouse,clicked,*", "bg");
    elm_layout_signal_callback_add(edit_btn, "edit,done", "", _done_clicked_cb, wid);
    elm_layout_signal_callback_add(edit_btn, "edit,edit", "", _edit_clicked_cb, wid);
    evas_object_show(edit_btn);
@@ -310,7 +54,6 @@ widget_instance_create(widget_context_h context, bundle *content, int w, int h, 
 	evas_object_show(wid->grid);
 	elm_box_pack_end(wid->box, wid->grid);
 
-
    if (abs(w - h) < 10) // 4 x 4
       elm_grid_size_set(wid->grid, 4, 4);
    else // 4 x 2
@@ -321,7 +64,17 @@ widget_instance_create(widget_context_h context, bundle *content, int w, int h, 
    evas_object_size_hint_align_set(wid->plus_icon, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_layout_signal_callback_add(wid->plus_icon, "plus,clicked", "", _plus_clicked_cb, wid);
    evas_object_show(wid->plus_icon);
-   elm_grid_pack(wid->grid, wid->plus_icon, 0, 0, 1, 1);
+
+   wid->app_count = _bundle_prev_state_set(wid);
+
+   if (wid->app_count <= 0)
+      {
+         elm_layout_signal_emit(edit_btn, "mouse,clicked,*", "bg");
+
+         elm_grid_pack(wid->grid, wid->plus_icon, 0, 0, 1, 1);
+      }
+   else
+      elm_layout_signal_emit(wid->plus_icon, "plus,hide", "");
 
 	/* Show window after base gui is set up */
 	evas_object_show(wid->win);
@@ -335,6 +88,9 @@ widget_instance_destroy(widget_context_h context, widget_app_destroy_type_e reas
 {
 	widget_instance_data_s *wid = NULL;
 	widget_app_context_get_tag(context,(void**)&wid);
+	dlog_print(DLOG_ERROR, LOG_TAG, "widget_instance_destroy");
+
+
 
 	if (wid->win)
 		evas_object_del(wid->win);
@@ -358,6 +114,7 @@ widget_instance_pause(widget_context_h context, void *user_data)
 
    if (!strcmp(state, "done"))
       elm_layout_signal_emit(wid->edit_btn, "mouse,clicked,*", "bg");
+
    dlog_print(DLOG_ERROR, LOG_TAG, "widget_instance_pause");
 	return WIDGET_ERROR_NONE;
 

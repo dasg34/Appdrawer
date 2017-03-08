@@ -97,28 +97,19 @@ _app_select_cb(void *data, Evas_Object *obj, void *event_info)
    appdata_s *ad = data;
    Elm_Object_Item *it = event_info;
    app_info_h app_info;
-   char *icon, *label, *id;
+   char *id;
 
    app_info = elm_object_item_data_get(it);
 
-   app_info_get_icon(app_info, &icon);
-   app_info_get_label(app_info, &label);
    app_info_get_app_id(app_info, &id);
-
-   dlog_print(DLOG_ERROR, LOG_TAG, "icon = %s", icon);
-   dlog_print(DLOG_ERROR, LOG_TAG, "label = %s", label);
 
    app_control_h reply;
    app_control_create(&reply);
-   app_control_add_extra_data(reply, "app_icon", icon);
-   app_control_add_extra_data(reply, "app_label", label);
    app_control_add_extra_data(reply, "app_id", id);
    app_control_reply_to_launch_request(reply, ad->app_control, APP_CONTROL_RESULT_SUCCEEDED);
    app_control_destroy(reply);
    app_control_destroy(ad->app_control);
 
-   free(icon);
-   free(label);
    free(id);
    free(ad->operation);
    ad->operation = NULL;
