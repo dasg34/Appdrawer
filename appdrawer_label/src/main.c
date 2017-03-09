@@ -7,10 +7,15 @@ widget_instance_create(widget_context_h context, bundle *content, int w, int h, 
 	widget_instance_data_s *wid = (widget_instance_data_s*) calloc(1, sizeof(widget_instance_data_s));
 	int ret;
 
+   wid->bundle = bundle_create();
    if (content != NULL)
-      wid->bundle = bundle_dup(content);
-   else
-      wid->bundle = bundle_create();
+      {
+         const char **app_list;
+         int ary_count;
+
+         app_list = bundle_get_str_array(content, "app_list", &ary_count);
+         bundle_add_str_array(wid->bundle, "app_list", app_list, ary_count);
+      }
 
    wid->context = context;
 
